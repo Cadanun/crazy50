@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>⚠️ 系 统 崩 溃 ⚠️</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #008080;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .desktop {
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, #008080 0px, #008080 2px, #008282 2px, #008282 4px),
+      radial-gradient(ellipse at 30% 20%, #00aaaa33 0%, transparent 70%);
+    z-index: 0;
+  }
+
+  .desktop-icons {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 80px;
+    gap: 18px;
+  }
+  .desktop-icon {
+    text-align: center;
+    color: #fff;
+    font-size: 9px;
+    line-height: 1.4;
+    text-shadow: 1px 1px #000;
+  }
+  .desktop-icon .icon-img {
+    width: 48px; height: 48px;
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    margin: 0 auto 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+
+  .taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 38px;
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    gap: 6px;
+  }
+  .start-btn {
+    font-family: "Press Start 2P", monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .start-btn:active { border-style: inset; }
+  .taskbar-time {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: "Press Start 2P", monospace;
+    padding: 4px 10px;
+    border: 2px inset #fff;
+  }
+
+  .popup {
+    position: absolute;
+    width: 340px;
+    background: #c0c0c0;
+    border: 3px outset #fff;
+    z-index: 100;
+    box-shadow: 3px 3px 0 #00000088;
+    font-family: "SimSun", "宋体", "Microsoft YaHei", sans-serif;
+  }
+
+  @keyframes crtFlicker {
+    0%, 100% { opacity: 1; }
+    92%  { opacity: 1; }
+    93%  { opacity: 0.85; }
+    94%  { opacity: 1; }
+    96%  { opacity: 0.9; }
+    97%  { opacity: 1; }
+  }
+
+  .popup-titlebar {
+    background: linear-gradient(90deg, #000080, #1084d0, #000080);
+    color: #fff;
+    padding: 3px 4px;
+    display: flex;
+    align-items: center;
+    font-family: "Press Start 2P", monospace;
+    font-size: 8px;
+    cursor: default;
+    user-select: none;
+  }
+  .popup-titlebar .title-icon { margin-right: 4px; font-size: 14px; }
+  .popup-titlebar .title-text { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .popup-titlebar .win-btns { display: flex; gap: 2px; }
+  .popup-titlebar .win-btn {
+    width: 18px; height: 18px;
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #000;
+    font-family: monospace;
+    font-weight: bold;
+  }
+  .popup-titlebar .win-btn:active { border-style: inset; }
+
+  .popup-body {
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: #c0c0c0;
+  }
+
+  .error-icon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .error-icon {
+    width: 42px; height: 42px;
+    min-width: 42px;
+    background: #ff0000;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px #000;
+    animation: blinkError 0.6s infinite;
+    border: 2px solid #800;
+  }
+  @keyframes blinkError {
+    0%, 100% { background: #ff0000; }
+    50% { background: #cc0000; }
+  }
+
+  .kfc-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #000;
+    flex: 1;
+    font-family: "SimHei", "黑体", "Microsoft YaHei", sans-serif;
+    font-weight: bold;
+  }
+  .kfc-text .big {
+    font-size: 16px;
+    color: #cc0000;
+    animation: blinkText 0.5s infinite;
+  }
+  @keyframes blinkText {
+    0%, 100% { color: #cc0000; }
+    50% { color: #ff6600; }
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: "Press Start 2P", monospace;
+    font-size: 7px;
+    padding: 6px 12px;
+    background: #c0c0c0;
+    border: 3px outset #fff;
+    cursor: pointer;
+    min-width: 70px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .btn:active { border-style: inset; }
+  .btn-close {
+    color: #800000;
+    border-color: #ff4444;
+    background: #ffcccc;
+  }
+  .btn-ok {
+    color: #000;
+    background: #c0c0c0;
+    animation: pulseBtn 2s infinite;
+  }
+  @keyframes pulseBtn {
+    0%, 100% { background: #c0c0c0; }
+    50% { background: #e0e0e0; }
+  }
+
+  .scanline-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
+
+  .chromatic {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99998;
+    box-shadow:
+      inset 0 0 60px rgba(255,0,0,0.08),
+      inset 0 0 60px rgba(0,0,255,0.08);
+  }
+
+  .bsod-flash {
+    position: fixed;
+    inset: 0;
+    background: #0000aa;
+    z-index: 99990;
+    pointer-events: none;
+    animation: bsodFlash 8s infinite;
+  }
+  @keyframes bsodFlash {
+    0%, 95%, 100% { opacity: 0; }
+    96% { opacity: 0.4; }
+  }
+
+  .dead-pixel {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99989;
+    width: 3px; height: 3px;
+    background: #000;
+  }
+
+  .counter-bar {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    font-family: "Press Start 2P", monospace;
+    font-size: 11px;
+    color: #ffff00;
+    text-shadow: 2px 2px #000, 0 0 10px #ff0;
+    text-align: center;
+    pointer-events: none;
+    animation: crtFlicker 0.15s infinite;
+  }
+
+  .dragging {
+    opacity: 0.85;
+    z-index: 9999 !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="desktop"></div>
+<div class="scanline-overlay"></div>
+<div class="chromatic"></div>
+<div class="bsod-flash"></div>
+
+<div class="desktop-icons">
+  <div class="desktop-icon"><div class="icon-img">🖥️</div>我的电脑</div>
+  <div class="desktop-icon"><div class="icon-img">🗑️</div>回收站</div>
+  <div class="desktop-icon"><div class="icon-img">🍗</div>KFC.exe</div>
+  <div class="desktop-icon"><div class="icon-img">💀</div>错误报告</div>
+  <div class="desktop-icon"><div class="icon-img">📁</div>V我50</div>
+</div>
+
+<div class="taskbar">
+  <button class="start-btn" onclick="spawnAll()">🚨 开 始</button>
+  <span style="font-size:9px;font-family:'Press Start 2P';color:#000;">⚠️ 15 个致命错误</span>
+  <span class="taskbar-time" id="clock"></span>
+</div>
+
+<div class="counter-bar" id="counterBar">💀 活跃弹窗: <span id="popupCount">0</span> / 15</div>
+
+<script>
+const TITLES = [
+  "⚠️ 致 命 错 误 #0x4A",
+  "⚠️ KERNEL PANIC: KFC",
+  "⚠️ BSOD 0x0000FRIED",
+  "⚠️ GPF in module KFC.DLL",
+  "⚠️ 非法操作! 非法操作!",
+  "⚠️ SYS31337: 疯狂星期四",
+  "⚠️ 内存不足: 炸鸡溢出",
+  "⚠️ 未处理的疯狂异常",
+  "⚠️ 致命: V50_NOT_FOUND",
+  "⚠️ 堆栈溢出: 原味鸡.exe",
+  "⚠️ IRQL_NOT_LESS_OR_EQUAL",
+  "⚠️ 蛋挞缓冲区下溢",
+  "⚠️ 吮指原味鸡未响应",
+  "⚠️ 疯狂星期四协议违规",
+  "⚠️ SYSTEM HALTED: 50¥",
+];
+
+const BODIES = [
+  '今天是疯狂星期四<br><span class="big">🍗 V我50！🍗</span>',
+  '检测到您尚未V我50<br><span class="big">⚠️ 立即支付 ⚠️</span>',
+  '系统崩溃原因:<br><span class="big">🍟 炸鸡不足 🍟</span>',
+  '疯狂星期四协议:<br><span class="big">💸 V我50 💸</span>',
+  'ERROR 418: 我是炸鸡壶<br><span class="big">🍗 V! 我! 50! 🍗</span>',
+  '致命异常 0xDEADBEEF<br><span class="big">今天疯狂星期四!!</span>',
+  '堆栈溢出: 原味鸡*15<br><span class="big">⚡ V我50 ⚡</span>',
+  '星期四权限不足<br><span class="big">🔑 请支付50元 🔑</span>',
+  'KFC Kernel v50.0<br><span class="big">🍔 疯狂星期四!! 🍔</span>',
+  '香辣鸡腿堡 DMA 冲突<br><span class="big">💥 V我50!! 💥</span>',
+  '中断级别: 疯狂<br><span class="big">🐔 今天星期四!! 🐔</span>',
+  '上校签名验证失败<br><span class="big">✍️ 打钱50!! ✍️</span>',
+  '全家桶分段错误<br><span class="big">🪣 V! 我! 50! 🪣</span>',
+  '薯条已从内存中拔出<br><span class="big">🍟 就50块钱!! 🍟</span>',
+  '疯狂模块加载失败<br><span class="big">💀 V我50 💀</span>',
+];
+
+let popupCount = 0;
+const MAX_POPUPS = 15;
+let nextId = 0;
+
+function updateCounter() {
+  document.getElementById('popupCount').textContent = popupCount;
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('zh-CN', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function createPopup() {
+  if (popupCount >= MAX_POPUPS) return;
+
+  const id = nextId++;
+  const titleIdx = id % TITLES.length;
+  const bodyIdx = id % BODIES.length;
+
+  const popup = document.createElement('div');
+  popup.className = 'popup';
+  popup.id = 'popup-' + id;
+  popup.style.left = rand(10, window.innerWidth - 360) + 'px';
+  popup.style.top = rand(10, window.innerHeight - 280) + 'px';
+
+  popup.innerHTML = `
+    <div class="popup-titlebar" onmousedown="startDrag(event, 'popup-${id}')">
+      <span class="title-icon">💀</span>
+      <span class="title-text">${TITLES[titleIdx]}</span>
+      <div class="win-btns">
+        <span class="win-btn">─</span>
+        <span class="win-btn">□</span>
+        <span class="win-btn" onclick="dismissPopup(event, 'popup-${id}')">✕</span>
+      </div>
+    </div>
+    <div class="popup-body">
+      <div class="error-icon-row">
+        <div class="error-icon">!</div>
+        <div class="kfc-text">${BODIES[bodyIdx]}</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-close" onclick="dismissPopup(event, 'popup-${id}')">✕ 关 闭</button>
+        <button class="btn btn-ok" onclick="dismissPopup(event, 'popup-${id}')">😭 我服了！</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+  popupCount++;
+  updateCounter();
+
+  // 随机抖动
+  setTimeout(() => randomJitter(popup), rand(1500, 4000));
+}
+
+function dismissPopup(event, popupId) {
+  if (event) event.stopPropagation();
+  const popup = document.getElementById(popupId);
+  if (!popup) return;
+
+  // 直接移除，无动画
+  popup.parentNode.removeChild(popup);
+  popupCount--;
+  updateCounter();
+  // 立刻弹新的
+  createPopup();
+}
+
+function randomJitter(popup) {
+  if (!popup || !popup.parentNode) return;
+  const x = parseInt(popup.style.left) + rand(-8, 8);
+  const y = parseInt(popup.style.top) + rand(-8, 8);
+  popup.style.left = Math.max(0, Math.min(window.innerWidth - 360, x)) + 'px';
+  popup.style.top = Math.max(0, Math.min(window.innerHeight - 280, y)) + 'px';
+  setTimeout(() => randomJitter(popup), rand(1500, 4000));
+}
+
+// ---- 拖拽窗口 ----
+let dragTarget = null;
+let dragOffX = 0, dragOffY = 0;
+
+function startDrag(e, popupId) {
+  const popup = document.getElementById(popupId);
+  if (!popup) return;
+  dragTarget = popup;
+  dragOffX = e.clientX - popup.offsetLeft;
+  dragOffY = e.clientY - popup.offsetTop;
+  popup.classList.add('dragging');
+  e.preventDefault();
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (!dragTarget) return;
+  dragTarget.style.left = Math.max(0, Math.min(window.innerWidth - 360, e.clientX - dragOffX)) + 'px';
+  dragTarget.style.top = Math.max(0, Math.min(window.innerHeight - 280, e.clientY - dragOffY)) + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragTarget) {
+    dragTarget.classList.remove('dragging');
+    dragTarget = null;
+  }
+});
+
+// ---- 随机坏像素 ----
+for (let i = 0; i < 20; i++) {
+  const pixel = document.createElement('div');
+  pixel.className = 'dead-pixel';
+  pixel.style.left = rand(0, window.innerWidth) + 'px';
+  pixel.style.top = rand(0, window.innerHeight) + 'px';
+  pixel.style.background = ['#ff0000','#00ff00','#0000ff','#000'][rand(0,3)];
+  document.body.appendChild(pixel);
+}
+
+// ---- 键盘快捷键 ----
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // 全部瞬间清掉，立刻重生15个
+    document.querySelectorAll('.popup').forEach(p => p.parentNode.removeChild(p));
+    popupCount = 0;
+    updateCounter();
+    spawnAll();
+  }
+});
+
+function spawnAll() {
+  while (popupCount < MAX_POPUPS) createPopup();
+}
+
+// ---- 启动: 瞬间弹出15个 ----
+spawnAll();
+</script>
+</body>
+</html>
